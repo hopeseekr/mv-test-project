@@ -1,0 +1,39 @@
+version: '2'
+
+################################################################
+#   The DockerPHP Project                                      #
+#   https://github.com/phpexpertsinc/docker-php                #
+#   License: MIT                                               #
+#                                                              #
+#   Copyright © 2018 PHP Experts, Inc. <sales@phpexperts.pro>  #
+#       Author: Theodore R. Smith <theodore@phpexperts.pro>    #
+#      PGP Sig: 4BF826131C3487ACD28F2AD8EB24A91DD6125690       #
+################################################################
+
+services:
+  web:
+    image: phpexperts/web:nginx-php7.2
+    depends_on:
+      - db
+    links:
+      - db
+    volumes:
+      - ..:/var/www
+
+  db:
+    image: postgres:9.6
+    volumes:
+      - /var/lib/docker/postgresql:/var/lib/postgresql
+
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: mvtest
+
+  redis:
+    image: redis:3.2.6
+    entrypoint:
+      - redis-server
+      - --requirepass ${REDIS_PASSWORD}
+      - --loglevel notice
+
