@@ -17,7 +17,7 @@
 			<img width="100" src="{{ $company->logo }}">
 		</div>
 		<div class="col">
-			<p><a href="/companies/{{ $company->id }}">{{ $company->name }}</a> ({{-- 1. Display the total dollars raised here, as money --}})</p>
+			<p><a href="/companies/{{ $company->id }}">{{ $company->name }}</a> (${{ number_format($company->totalInvestments, 2) }})</p>
 		</div>
 	</div>
 	@endforeach
