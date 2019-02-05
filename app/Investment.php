@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Investment extends Model
 {
@@ -14,5 +15,10 @@ class Investment extends Model
     public function investor()
     {
         return $this->belongsTo(Investor::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }
