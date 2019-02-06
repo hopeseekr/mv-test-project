@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Company;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,6 +62,54 @@ class CompaniesTest extends TestCase
                 ['The logo field is required.'],
                 $e->getResponse()->get('logo')
             );
+        }
+    }
+
+    public function providesCompanyUpdates(): array
+    {
+        return [
+            [[]],
+            [
+                ['name' => 'New Name'],
+            ],
+            [
+                ['logo' => 'New Name'],
+            ],
+            [
+                ['name' => 'New Name'],
+                ['logo' => 'New Name'],
+            ],
+        ];
+    }
+
+    /**
+     * @test
+     * @dataProvider providesCompanyUpdates
+     */
+    public function it_updates_a_company($updateParams)
+    {
+        $c = Company::create(['name' => 'Orig Name', 'logo' => 'Orig Logo']);
+        $companyId = $c->id;
+        $origCompany = clone $c;
+
+        $c->update($updateParams);
+
+        $check = Company::query()->find($companyId);
+
+        foreach ($c->toArray() as $property => $value) {
+            if (isset($updateParams[$property])) {
+                $this->assertEquals(
+                    $updateParams[$property],
+                    $check->$property,
+                    "Did not update $property to {$updateParams[$property]}: $value"
+                );
+            } else {
+                $this->assertEquals(
+                    $origCompany->$property,
+                    $check->$property,
+                    "Improperly update $property to $value instead of {$origCompany->$property}"
+                );
+            }
         }
     }
 

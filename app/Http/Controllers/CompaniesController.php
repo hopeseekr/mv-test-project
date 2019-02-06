@@ -89,15 +89,32 @@ class CompaniesController extends Controller
      *
      * @param  int  $id
      * @param  Request $request
-     * @return response
+     * @return JsonResponse
      */
-    public function update($id, Request $request)
+    public function update($id, Request $request): JsonResponse
     {
     	// 7. Treat this as an API endpoint
     	// 8. Validate that the name and logo fields are required.
-    	//    If validation fails, return an error message with what you feel
-    	//    the appropriate response code is
+        //    If validation fails, return an error message with what you feel
+        //    the appropriate response code is
+        try {
+            Company::validate($request->all(), false);
+        } catch (ValidationException $e) {
+            return new JsonResponse(['errors' => $e->getResponse()], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // NOTE: I'm assuming you're not using Late Model Binding for some reason?
+        //       In my apps, I don't, mainly because I want finer-grained control over the
+        //       JsonResponse on errors (More user-friendly).
+        $company = Company::query()->find($id);
+        if (!$company) {
+            return new JsonResponse(['error' => 'The entity was not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
     	// 9. Persist the company.
+        $company->update($request->all());
+
+        return new JsonResponse([], JsonResponse::HTTP_NO_CONTENT);
     	// 10. Write a test for this. Be sure to include a failure test!
     }
 

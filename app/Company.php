@@ -23,6 +23,8 @@ class Company extends Model
     ];
 
     private static $updatingRules = [
+        'name' => 'sometimes|string',
+        'logo' => 'sometimes|string',
     ];
 
     public static function validate($data, $isNew = true)

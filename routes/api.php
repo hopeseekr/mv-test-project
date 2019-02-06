@@ -7,3 +7,4 @@ Route::get('companies/{id}', function ($id) {
 });
 
 Route::post('companies', 'CompaniesController@store');
+Route::patch('companies/{id}', 'CompaniesController@update');
