@@ -4,9 +4,11 @@ namespace App\Console\Commands;
 
 use App\CompaniesInvestments;
 use App\Mail\InvestmentsCSVReport;
+use CSVWriter\LeagueCSVWriter;
+use CSVWriter\NativeCSVWriter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
-use League\Csv\Writer as CSVWriter;
 use Validator;
 
 class GenerateCsvReport extends Command
@@ -35,31 +37,7 @@ class GenerateCsvReport extends Command
         parent::__construct();
     }
 
-    protected function packageIntoCSV(array $companiesInvestments): string
-    {
-        // Open up a temporary memory file for the CSV.
-        $fh = fopen('php://memory', 'w+');
-
-        // Output the columns to CSV:
-        fputcsv($fh, array_keys($companiesInvestments[0]));
-
-        // Output it to CSV.
-        foreach ($companiesInvestments as $companyInvestments) {
-            fputcsv($fh, $companyInvestments);
-        }
-
-        // Read it back.
-        rewind($fh);
-        $csv = stream_get_contents($fh);
-
-        // Don't forget to close, or you'll run out of file handlers eventually and
-        // have a memleak.
-        fclose($fh);
-
-        return $csv;
-    }
-
-    protected function packageIntoCSVviaLeague(array $companiesInvestments): string
+    protected function packageIntoCSV(Collection $companiesInvestments): string
     {
         /*
          * The exercise calls for me to "discuss the pros and cons of using league/csv."
@@ -91,13 +69,15 @@ class GenerateCsvReport extends Command
          *     instead.
          */
 
-        $csvWriter = CSVWriter::createFromString('');
-        $csvWriter->insertOne(array_keys($companiesInvestments[0]));
-        $csvWriter->insertAll($companiesInvestments);
+        // @todo: A more appropriate place would be in the package's ServiceProvider.
+        //        But that would interfere with the contrived demo.
+        if ($this->option('use-league')) {
+            $csvWriter = new LeagueCSVWriter();
+        } else {
+            $csvWriter = new NativeCSVWriter();
+        }
 
-        $csv = $csvWriter->getContent();
-
-        return $csv;
+        return $csvWriter->collectionToCsv($companiesInvestments);
     }
 
     protected function emailCSV($email, $csv)
@@ -117,18 +97,13 @@ class GenerateCsvReport extends Command
         Validator::make(['email' => $email], ['email:required|email']);
 
         // Let's demo the 'performant' way.
-        $companiesInvestments = CompaniesInvestments::all()->sortBy('id')
-            ->toArray();
+        $companiesInvestments = CompaniesInvestments::all()->sortBy('id');
         if (empty($companiesInvestments)) {
             $this->line('No investment info is available.');
             exit;
         }
 
-        if ($this->option('use-league')) {
-            $csv = $this->packageIntoCSVviaLeague($companiesInvestments);
-        } else {
-            $csv = $this->packageIntoCSV($companiesInvestments);
-        }
+        $csv = $this->packageIntoCSV($companiesInvestments);
 
         $this->emailCSV($email, $csv);
     }
