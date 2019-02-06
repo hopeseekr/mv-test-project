@@ -2,11 +2,49 @@
 
 namespace App;
 
+use Illuminate\Validation\ValidationException;
+use Validator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
+/**
+ * @property int    $id
+ * @property string $name
+ * @property string $logo
+ * @property-read string totalInvestments
+ */
 class Company extends Model
 {
+    protected $fillable = ['name', 'logo'];
+
+    private static $creatingRules = [
+        'name' => 'required|string',
+        'logo' => 'required|string',
+    ];
+
+    private static $updatingRules = [
+    ];
+
+    public static function validate($data, $isNew = true)
+    {
+        if ($isNew) {
+            $v = Validator::make($data, self::$creatingRules);
+        } else {
+            $v = Validator::make($data, self::$updatingRules);
+        }
+
+        if ($v->fails()) {
+            throw new ValidationException($v, $v->errors());
+        }
+    }
+
+    public function save(array $options = [])
+    {
+        self::validate($this->toArray(), !$this->exists);
+
+        return parent::save($options);
+    }
+
     public function investments(): HasManyThrough
     {
         return $this->hasManyThrough(

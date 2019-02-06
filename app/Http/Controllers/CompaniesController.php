@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Company;
 use App\Investment;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Psy\Util\Json;
 
 class CompaniesController extends Controller
 {
@@ -55,11 +58,20 @@ class CompaniesController extends Controller
      * Create a company
      *
      * @param  Request $request
-     * @return response
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-    	$company = Company::create(['name' => $request->name, 'logo' => $request->logo]);
+        try {
+            Company::validate($request->all());
+        } catch (ValidationException $e) {
+            return new JsonResponse(['errors' => $e->getResponse()], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+    	$company = Company::create([
+    	    'name' => $request->input('name'),
+            'logo' => $request->input('logo'),
+        ]);
     	// Note: A test has been started for this method. Please complete it as
     	//       described in the CompaniesTest.
     	// 4. Treat this as an API endpoint. Use Postman to test.
@@ -69,7 +81,7 @@ class CompaniesController extends Controller
     	// 6. Persist the company.
     	// 7. Add a test for validation errors
 
-    	return $company;
+    	return new JsonResponse($company);
     }
 
     /**
