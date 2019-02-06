@@ -30,8 +30,14 @@ class CompaniesController extends Controller
     public function show($id)
     {
     	// 2. Get the Company from its id
+        // Always use ::query() to avoid the PAIN of static analyzers and
+        // it's also more performant (it's what Eloquent's ::__call() proxies to).
+        $company = Company::query()->findOrFail($id);
+        $totalInvestments = $company->totalInvestments;
+
     	// 3. Create a view in /resources/views/companies to display the
     	//    company name, logo, and total dollars raised
+        return view('companies.show', compact('company', 'totalInvestments'));
     }
 
     /**
