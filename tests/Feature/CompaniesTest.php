@@ -28,8 +28,7 @@ class CompaniesTest extends TestCase
             'name' => 'Hello',
             'logo' => 'http://logo.com/logo.gif',
         ];
-        $response = $this->json('POST', '/companies', $createParams);
-
+        $response = $this->json('POST', '/api/companies', $createParams);
         $response->assertStatus(200);
 
         // Add a database assertion here
