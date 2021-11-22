@@ -15,6 +15,7 @@
 
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
+            <directory suffix="Test.php">./packages/CSVWriter/tests</directory>
         </testsuite>
     </testsuites>
     <filter>
